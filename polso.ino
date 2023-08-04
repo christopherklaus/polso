@@ -114,6 +114,7 @@ void loop() {
     if (upButtonState == LOW) {
       // up
       setValue(currentPage, currentPage->currentValue + 1);
+      setState(currentPage, true);
       updatePageInMQTT(currentPage);
     }
   }
@@ -123,6 +124,7 @@ void loop() {
     if (downButtonState == LOW) {
       // down
       setValue(currentPage, currentPage->currentValue - 1);
+      setState(currentPage, true);
       updatePageInMQTT(currentPage);
     }
   }
@@ -151,6 +153,7 @@ void loop() {
     if (selectButtonState == LOW) {
       // toggle
       setState(currentPage, !currentPage->state);
+      updatePageInMQTT(currentPage);
     } 
   }
 
