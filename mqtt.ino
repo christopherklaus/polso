@@ -19,18 +19,21 @@ void onMqttMessage(int messageSize) {
   // Get the name and value
   const char* name = doc["name"]; 
   int updatedCurrentValue = doc["currentValue"]; 
+  bool updatedState = doc["state"];
 
   Serial.print("Receiving request to update value of ");
   Serial.println(name);
 
   Page* pageToUpdate = getPageByName(pages, name, pagesLength);
   setValue(pageToUpdate, updatedCurrentValue);
+  setState(pageToUpdate, updatedState);
 }
 
 void updatePageInMQTT(Page* currentPage) {
   StaticJsonDocument<MQTT_BUFFER_SIZE> doc;
   doc["name"] = currentPage->name;
   doc["currentValue"] = currentPage->currentValue;
+  doc["state"] = currentPage->state;
   char updatedPage[MQTT_BUFFER_SIZE];
   serializeJson(doc, updatedPage, sizeof(updatedPage));
 

@@ -12,14 +12,20 @@ uint32_t count = 0;
 const int selectButtonPin = 0;
 const int leftButtonPin = 1;
 const int rightButtonPin = 2;
+const int upButtonPin = 3;
+const int downButtonPin = 5;
 int selectButtonState = HIGH;
 int leftButtonState = HIGH;
 int rightButtonState = HIGH;
+int upButtonState = HIGH;
+int downButtonState = HIGH;
 int selectButtonCounter = 0;
 
 int previousSelectButtonState = HIGH;
 int previousLeftButtonState = HIGH;
 int previousRightButtonState = HIGH;
+int previousUpButtonState = HIGH;
+int previousDownButtonState = HIGH;
 
 struct Page{
   String name;
@@ -61,6 +67,8 @@ void setup() {
   pinMode(selectButtonPin, INPUT_PULLUP);
   pinMode(leftButtonPin, INPUT_PULLUP);
   pinMode(rightButtonPin, INPUT_PULLUP);
+  pinMode(upButtonPin, INPUT_PULLUP);
+  pinMode(downButtonPin, INPUT_PULLUP);
 
   while (status != WL_CONNECTED) {
     printDisplay("Init", "Wifi");
@@ -96,39 +104,61 @@ void loop() {
   selectButtonState = digitalRead(selectButtonPin);
   leftButtonState = digitalRead(leftButtonPin);
   rightButtonState = digitalRead(rightButtonPin);
+  upButtonState = digitalRead(upButtonPin);
+  downButtonState = digitalRead(downButtonPin);
 
   Page *currentPage = &pages[currentPageIndex];
+
+  if (previousUpButtonState != upButtonState) {
+    previousUpButtonState = upButtonState;
+    if (upButtonState == LOW) {
+      // up
+      setValue(currentPage, currentPage->currentValue + 1);
+      updatePageInMQTT(currentPage);
+    }
+  }
+
+  if(previousDownButtonState != downButtonState) {
+    previousDownButtonState = downButtonState;
+    if (downButtonState == LOW) {
+      // down
+      setValue(currentPage, currentPage->currentValue - 1);
+      updatePageInMQTT(currentPage);
+    }
+  }
 
   if (previousLeftButtonState != leftButtonState) {
     previousLeftButtonState = leftButtonState;
     if (leftButtonState == LOW) {
-      setValue(currentPage, currentPage->currentValue - 1);
+      // previous
+      selectButtonCounter++;
+      currentPageIndex = selectButtonCounter%2;
     }
-    updatePageInMQTT(currentPage);
   }
 
   if(previousRightButtonState != rightButtonState) {
     previousRightButtonState = rightButtonState;
     if (rightButtonState == LOW) {
-      setValue(currentPage, currentPage->currentValue + 1);
+      // next
+      selectButtonCounter++;
+      currentPageIndex = selectButtonCounter%2;
     }
-    updatePageInMQTT(currentPage);
   }
 
   if (previousSelectButtonState != selectButtonState) {
     // an actual button press happened
     previousSelectButtonState = selectButtonState;
     if (selectButtonState == LOW) {
-      // button is pressed
-      selectButtonCounter++;
-      Serial.print("Switching page to ");
-      Serial.println(currentPage->name);
-
-      currentPageIndex = selectButtonCounter%2;
+      // toggle
+      setState(currentPage, !currentPage->state);
     } 
   }
 
   String currentValueDisplayOutput = (String)currentPage->currentValue + "%";
-  printDisplay(currentPage->name, currentValueDisplayOutput);
+  if (currentPage->state) {
+    printDisplay(currentPage->name, currentValueDisplayOutput);
+  } else {
+    printDisplay(currentPage->name, "off");
+  }
   count++;
 }
