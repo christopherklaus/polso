@@ -1,0 +1,4 @@
+#define INCREASE_INTERVAL 5
+#define MQTT_BROKER "192.168.178.92"
+#define MQTT_PORT 1883
+#define DWELL 30
