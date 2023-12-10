@@ -15,10 +15,6 @@
 uint32_t count = 0;
 
 const int selectButtonPin = 17; // 0;
-const int leftButtonPin = 1;
-const int rightButtonPin = 2;
-const int upButtonPin = 3;
-const int downButtonPin = 5;
 
 const int rotButton = 18;
 
@@ -28,17 +24,9 @@ unsigned long previousMillis;
 unsigned long currentMillis;
 
 int selectButtonState = HIGH;
-int leftButtonState = HIGH;
-int rightButtonState = HIGH;
-int upButtonState = HIGH;
-int downButtonState = HIGH;
 int selectButtonCounter = 0;
 
 int previousSelectButtonState = HIGH;
-int previousLeftButtonState = HIGH;
-int previousRightButtonState = HIGH;
-int previousUpButtonState = HIGH;
-int previousDownButtonState = HIGH;
 
 struct Page{
   String name;
@@ -77,12 +65,6 @@ long rotationPosition, lastRotationPosition, relativeDelta, lastRotationMillis, 
 
 void setup() {
   Serial.begin(9600);
-  
-  pinMode(selectButtonPin, INPUT_PULLUP);
-  pinMode(leftButtonPin, INPUT_PULLUP);
-  pinMode(rightButtonPin, INPUT_PULLUP);
-  pinMode(upButtonPin, INPUT_PULLUP);
-  pinMode(downButtonPin, INPUT_PULLUP);
 
   pinMode(rotButton, INPUT_PULLUP);
 
@@ -98,19 +80,19 @@ void setup() {
 
   display.gotoXY(0, 0);
   printDisplay("Init", "MQTT");
-  // if (!mqttClient.connect(broker, port)) {
-  //   display.gotoXY(0, 0);
-  //   printDisplay("Fail", "MQTT");
-  //   Serial.print("MQTT connection failed! Error code = ");
-  //   Serial.println(mqttClient.connectError());
+  if (!mqttClient.connect(broker, port)) {
+    display.gotoXY(0, 0);
+    printDisplay("Fail", "MQTT");
+    Serial.print("MQTT connection failed! Error code = ");
+    Serial.println(mqttClient.connectError());
 
-  //   while (1);
-  // }
+    while (1);
+  }
 
-  // mqttClient.onMessage(onMqttMessage);
+  mqttClient.onMessage(onMqttMessage);
   char buffer[50];
   sprintf(buffer, "%s/server", topic);
-  // mqttClient.subscribe(buffer);
+  mqttClient.subscribe(buffer);
 
   delay(500);
 
